@@ -1,5 +1,7 @@
  
 # %%
+from src.config import FILTERS_DIR
+
 import pandas as pd
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -22,7 +24,7 @@ def transmission_function(filter):
 
     transmission_file = filter_path.get(filter)
 
-    file_path = '/home/luis/tese/transmission_functions/' +  transmission_file
+    file_path = FILTERS_DIR / transmission_file
     transmission_function = pd.read_csv(file_path, delimiter=' ', names=['Wavelength', 'Transmission'])
 
     transmission_wavelength = np.array(transmission_function['Wavelength'])
