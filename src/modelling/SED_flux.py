@@ -1,18 +1,18 @@
 # %% Imports
 from src.data_retrieval.auxiliary_functions import * 
-from src.modelling.transmission_test import * 
+from src.modelling.transmission_test import convolution 
 from src.modelling.model_grid import load_model_grid
+
+from src.config import MODEL_GRID_DIR
+
 from scipy.interpolate import LinearNDInterpolator
-import pysynphot as S
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
-from uncertainties import ufloat
 from extinction import apply, ccm89
 
 # %% 
-folder_path = '/home/luis/pysynphot_models/trds/grid/ck04models'
-model_grid = load_model_grid(folder_path)
+model_grid = load_model_grid(MODEL_GRID_DIR)
 # %% Function that creates 8 SED using Kurucz and Castelli models for a cube of parameters
 '''
 def create_SEDs(Teff_vals, mettalicity_vals, logg_vals):

@@ -1,11 +1,12 @@
 # %% 
+from src.config import MODEL_GRID_DIR
+
 import glob
 import os
 from astropy.io import fits
 import numpy as np
 import astropy.units as u
 # %%
-folder_path = '/home/luis/pysynphot_models/trds/grid/ck04models'
 
 def load_model_grid(folder_path):
     u.flam = u.erg / u.s / u.cm**2 / u.angstrom
