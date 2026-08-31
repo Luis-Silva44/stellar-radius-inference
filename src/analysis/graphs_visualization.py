@@ -1,5 +1,5 @@
 # %%
-from auxiliary_functions import * 
+from src.data_retrieval.auxiliary_functions import * 
 
 import matplotlib.pyplot as plt
 import numpy as np

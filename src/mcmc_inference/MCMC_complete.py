@@ -1,7 +1,7 @@
 # %% 
-from gaia_module import gaia_values
-from SED_fitting import get_flux_values
-from SED_flux import *
+from src.data_retrieval.gaia_module import gaia_values
+from src.modelling.SED_fitting import get_flux_values
+from src.modelling.SED_flux import *
 # %%
 import matplotlib.pyplot as plt
 import numpy as np

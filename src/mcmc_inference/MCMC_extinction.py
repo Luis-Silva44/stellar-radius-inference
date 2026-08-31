@@ -1,8 +1,8 @@
 # %%
-from gaia_module import gaia_values
-from SED_fitting import get_flux_values
-from SED_flux import *
-from graphs_visualization import computed_real_comparison
+from src.data_retrieval.gaia_module import gaia_values
+from src.modelling.SED_fitting import get_flux_values
+from src.modelling.SED_flux import *
+from src.analysis.graphs_visualization import computed_real_comparison
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
