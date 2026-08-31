@@ -1,10 +1,12 @@
 # %% Imports
-from auxiliary_functions import *
-from gaia_module import *
-from wise_module import * 
-from two_mass_module import * 
-from SED_flux import *
-from graphs_visualization import * 
+from src.data_retrieval.auxiliary_functions import *
+from src.data_retrieval.gaia_module import *
+from src.data_retrieval.wise_module import * 
+from src.data_retrieval.two_mass_module import * 
+from src.modelling.SED_flux import *
+from src.analysis.graphs_visualization import * 
+
+from src.config import DATA_DIR
 
 import astropy.units as u
 import time
@@ -118,7 +120,13 @@ def star_set_tester(star_list, unit):
 
 # %%
 
-star_data = pd.read_csv('~/tese/testdata/list_stars.txt', sep="\t", header=0, skiprows=[1])
+star_data = pd.read_csv(
+    DATA_DIR / "list_stars.txt",
+    sep="\t",
+    header=0,
+    skiprows=[1]
+)
+
 star_test_subset = star_data.head()
 
 # Uncomment to run for list of stars (approx. 45 seconds)
