@@ -1,4 +1,5 @@
 from pathlib import Path
+import os 
 
 # Repository root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,5 +11,5 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 # Stellar atmosphere model grid
 MODEL_GRID_DIR = Path(
-    "/home/luis/pysynphot_models/trds/grid/ck04models"
+	os.environ["MODEL_GRID_DIR"]
 )

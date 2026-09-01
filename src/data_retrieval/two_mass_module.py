@@ -1,15 +1,13 @@
-# %% 
-from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astroquery.vizier import Vizier
 from uncertainties import ufloat
 import numpy as np
 
-from src.data_retrieval.auxiliary_functions import *
- # %% 
+from src.data_retrieval.auxiliary_functions import retrieve_gaia_id, mag_to_flux
 
-# Function to get the photometry values and errors and turn them into fluxes
 def two_mass_values(star_name):
+    '''Function to obtain the 2MASS survey magnitudes and convert them to flux'''
+    
     Vizier.ROW_LIMIT = -1
     gaia_id, star_name = retrieve_gaia_id(star_name)
     gaia_catalog = "I/355/gaiadr3"
@@ -43,6 +41,3 @@ def two_mass_values(star_name):
         print('No 2MASS data found')
     
     return two_mass_flux, two_mass_check
-# %% 
-
-#two_mass_values('TOI-5696')

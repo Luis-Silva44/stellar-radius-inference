@@ -1,12 +1,11 @@
-# %% Imports
 import astropy.units as u
 import numpy as np
 from astroquery.vizier import Vizier
 from uncertainties import ufloat
 
-from src.data_retrieval.auxiliary_functions import *
+from src.data_retrieval.auxiliary_functions import retrieve_gaia_id 
 
-# %% 
+
 # Function to search the gaia data release 3 and give us the values of flux, flux errors and parallax
 def gaia_values(star_name):
     gaia_id, star_name = retrieve_gaia_id(star_name)
@@ -34,6 +33,3 @@ def gaia_values(star_name):
 
     else:
         raise ValueError('No Gaia ID found')
-
-
- #%%  Simple test

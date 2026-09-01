@@ -1,58 +1,65 @@
-# %%
 from src.data_retrieval.gaia_module import gaia_values
 from src.modelling.SED_fitting import get_flux_values
-from src.modelling.SED_flux import *
-from src.analysis.graphs_visualization import computed_real_comparison
-# %%
+from src.modelling.SED_flux import flux_extinction, SED_interpolator
+from src.data_retrieval.auxiliary_functions import find_nearest_index
+
 import matplotlib.pyplot as plt
 import numpy as np
 import astropy.units as u
 from astropy.constants import R_sun
-import astropy.units as u
-import emcee as emcee
+import emcee
 import multiprocessing
 import corner
 from IPython.display import display, Math
 import time
-from scipy.stats import norm
 
-# %%
 
 def likelihood(params, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen):
-        distance, temperature, Ebv, radius = params
-        distance2 = (distance * u.pc).to(R_sun)
-        SED_wavelen, model_flux = SED_interpolator(temperature, metallicity, log_g)
-        nearest_index = []
-        for i in range(len(filter_wavelen)):
-            nearest_index.append(find_nearest_index(SED_wavelen, filter_wavelen[i]))
+    '''Set up Gaussian likelihood function for the model parameters'''
 
-        model_flux = np.array([model_flux[i].value for i in nearest_index]) 
+    distance, temperature, Ebv, radius = params
+    distance2 = (distance * u.pc).to(R_sun)
+    SED_wavelen, model_flux = SED_interpolator(temperature, metallicity, log_g)
+    nearest_index = []
+    for i in range(len(filter_wavelen)):
+        nearest_index.append(find_nearest_index(SED_wavelen, filter_wavelen[i]))
 
-        filter_wavelen_ = filter_wavelen.astype(np.float64)
-        flux_attenuated = flux_extinction(filter_wavelen_, model_flux, Ebv)
-        model_flux_scaled = flux_attenuated * (radius / distance2.value)**2
+    model_flux = np.array([model_flux[i].value for i in nearest_index]) 
 
-        c = np.log(2 * np.pi * obs_flux_unc**2)
-        return -0.5 * np.sum(c + ((obs_flux - model_flux_scaled)**2 / obs_flux_unc**2))
+    filter_wavelen_ = filter_wavelen.astype(np.float64)
+    flux_attenuated = flux_extinction(filter_wavelen_, model_flux, Ebv)
+    model_flux_scaled = flux_attenuated * (radius / distance2.value)**2
+
+    c = np.log(2 * np.pi * obs_flux_unc**2)
+    return -0.5 * np.sum(c + ((obs_flux - model_flux_scaled)**2 / obs_flux_unc**2))
+
 
 def prior(params, exp_distance, exp_temperature, temp_unc):
-        distance, temperature, Ebv, radius = params
+    '''Set up priors to each of the relevant parameters'''
 
-        if not (0.1 < radius < 10.0) or not (0.0 < Ebv < 0.5) or not(3500 < temperature < 10000):
-            return -np.inf
+    distance, temperature, Ebv, radius = params
+
+    if not (0.1 < radius < 10.0) or not (0.0 < Ebv < 0.5) or not(3500 < temperature < 10000):
+        return -np.inf
         
-        distance_prior = -0.5 * ((distance - exp_distance.value.nominal_value) / exp_distance.value.std_dev)**2
-        temperature_prior = -0.5*((temperature - exp_temperature) / temp_unc)**2
-        return distance_prior + temperature_prior
+    distance_prior = -0.5 * ((distance - exp_distance.value.nominal_value) / exp_distance.value.std_dev)**2
+    temperature_prior = -0.5*((temperature - exp_temperature) / temp_unc)**2
+    return distance_prior + temperature_prior
+
 
 def posterior(params, obs_flux, obs_flux_unc, exp_distance, exp_temperature, temp_unc, log_g, metallicity, filter_wavelen):
-        log_prior = prior(params, exp_distance, exp_temperature, temp_unc)
-        if not np.isfinite(log_prior):
-            return -np.inf
+    '''Set up posterior function from previous likelihood and priors'''
+
+    log_prior = prior(params, exp_distance, exp_temperature, temp_unc)
+    if not np.isfinite(log_prior):
+        return -np.inf
     
-        return log_prior + likelihood(params, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen)
-# %% 
+    return log_prior + likelihood(params, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen)
+
+
 def basic_MCMC(exp_values, nwalkers, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen):
+    '''Set up and run of the MCMC process'''
+
     exp_distance, exp_temperature, temp_unc, exp_Ebv, exp_radius = exp_values 
 
     pos = np.array([exp_distance.value.nominal_value + exp_distance.value.std_dev * np.random.randn(nwalkers), 
@@ -63,7 +70,6 @@ def basic_MCMC(exp_values, nwalkers, obs_flux, obs_flux_unc, log_g, metallicity,
     nwalkers, ndim = pos.shape
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, posterior, args=(obs_flux, obs_flux_unc, exp_distance, exp_temperature, temp_unc, log_g, metallicity, filter_wavelen), pool = multiprocessing.Pool(12))
-    state = sampler.run_mcmc(pos, 1500, progress=True)
 
     labels = ["Distance", "Temperature", "E(B-V)", "Radius"]
     fig, axes = plt.subplots(4, figsize=(10, 7), sharex=True)
@@ -93,8 +99,10 @@ def basic_MCMC(exp_values, nwalkers, obs_flux, obs_flux_unc, log_g, metallicity,
         if i == 3:
             return (mcmc[1] * R_sun).to(R_sun), sampler
 
-# %%
+
 def star_set_tester_MCMC(star_list):
+    '''Main tester for a set of stars, returning the estimated radius using the MCMC process and a list of stars with tecnhical issues'''
+
     time_start = time.time()
 
     problem_stars = []
@@ -144,83 +152,3 @@ def star_set_tester_MCMC(star_list):
     print(len(problem_stars), 'stars had issues with computing radius')
 
     return problem_stars, computed_radius, table_value_radius
-# %% 
-
-#star_data = pd.read_csv('~/tese/testdata/list_stars.txt', sep="\t", header=0, skiprows=[1])
-#star_test_subset = star_data.head()
-
-# %%
-#problem_stars, computed_list, table_list = star_set_tester_MCMC(star_data)
-# %%
-#computed_radii = np.array([i.value for i in computed_list])
-#table_values = np.array([i.value for i in table_list])
-#computed_real_comparison(computed_radii, table_values)
-
-#  %% 
-
-star_name = 'WASP-84'
-expected_Ebv = 0.020
-table_value = (0.828 * R_sun).to(R_sun)
-
-exp_Teff = 5221
-Teff_unc = 72
-log_g = 4.28
-metallicity = 0.05
-
-_, parallax, _= gaia_values(star_name)
-unit_change = 1 * u.parsec
-exp_distance = (1 / parallax.value) * unit_change
-
-filter_wavelen, flux_values = get_flux_values(star_name)
-obs_flux = np.array([m.value.nominal_value for m in flux_values])
-obs_flux_unc = np.array([m.value.std_dev for m in flux_values])
-
-
-exp_values = (exp_distance, exp_Teff, Teff_unc, expected_Ebv, table_value)
-
-comp_radius, sampler2 = basic_MCMC(exp_values, 12, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen)
-# %%
-star_name = 'HD128582'
-expected_Ebv = 0.008
-table_value = (1.63 * R_sun).to(R_sun)
-
-exp_Teff = 6168
-Teff_unc = 29
-log_g = 4.17
-metallicity = 0.098
-
-_, parallax, _= gaia_values(star_name)
-unit_change = 1 * u.parsec
-exp_distance = (1 / parallax.value) * unit_change
-
-filter_wavelen, flux_values = get_flux_values(star_name)
-obs_flux = np.array([m.value.nominal_value for m in flux_values])
-obs_flux_unc = np.array([m.value.std_dev for m in flux_values])
-
-
-exp_values = (exp_distance, exp_Teff, Teff_unc, expected_Ebv, table_value)
-
-comp_radius, sampler5 = basic_MCMC(exp_values, 12, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen)
-# %%
-star_name = 'HD 49674'
-expected_Ebv = 0.028
-table_value = (1.022 * R_sun).to(R_sun)
-
-exp_Teff = 5662
-Teff_unc = 72
-log_g = 4.42
-metallicity = 0.3
-
-_, parallax, _= gaia_values(star_name)
-unit_change = 1 * u.parsec
-exp_distance = (1 / parallax.value) * unit_change
-
-filter_wavelen, flux_values = get_flux_values(star_name)
-obs_flux = np.array([m.value.nominal_value for m in flux_values])
-obs_flux_unc = np.array([m.value.std_dev for m in flux_values])
-
-
-exp_values = (exp_distance, exp_Teff, Teff_unc, expected_Ebv, table_value)
-
-comp_radius, sampler8 = basic_MCMC(exp_values, 12, obs_flux, obs_flux_unc, log_g, metallicity, filter_wavelen)
-# %%

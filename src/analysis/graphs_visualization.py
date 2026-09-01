@@ -1,15 +1,13 @@
-# %%
-from src.data_retrieval.auxiliary_functions import * 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import astropy.units as u
 from astropy.constants import R_sun
 from uncertainties import umath
 import pandas as pd
-# %%
 
 def SED_fitting_plot(SED_wavelen, SED_flux, synth_phot, filter_wavelen, photometry_flux_values, photometry_flux_unc, minimization_radius, distance):
+    '''Function to create a SED fitting plot'''
+
     minimization_flux = SED_flux * minimization_radius **2 / distance.to(R_sun) ** 2
     minimization_flux = np.array([flux.value.nominal_value for flux in minimization_flux])
 
@@ -23,9 +21,10 @@ def SED_fitting_plot(SED_wavelen, SED_flux, synth_phot, filter_wavelen, photomet
     plt.grid()
     plt.legend(['Model flux','Synthetic Photometry', 'Observed flux'])
     plt.show()
-
-# %% 
+ 
 def create_dataframe(filter_wavelen, photometry_flux, SED_flux, distance):
+    '''Function to create a dataframe that includes several important quantities'''
+
     angular_diameter = []
     for i in range(len(photometry_flux)):
         ang_diam = 2 * umath.sqrt(photometry_flux[i].value / SED_flux[i].value)
@@ -34,7 +33,7 @@ def create_dataframe(filter_wavelen, photometry_flux, SED_flux, distance):
     unit = 1 * u.rad
     angular_diameter = angular_diameter * unit
 
-    stellar_radius = distance.to(R_sun) * angular_diameter.value / 2 #THIS IS SINE OF A VERY SMALL ANGLE
+    stellar_radius = distance.to(R_sun) * angular_diameter.value / 2 
     
     flux_table = pd.DataFrame({
     'Filter Wavelength': filter_wavelen,
@@ -52,22 +51,9 @@ def create_dataframe(filter_wavelen, photometry_flux, SED_flux, distance):
     flux_table.rename(columns={col: f"{col} ({unit})" for col, unit in column_units.items()}, inplace=True)
     return flux_table
 
-# Test
-#star_name = 'WASP-84'	
-#Teff = 5221 
-#logg = 4.28
-#mettalicity = 0.05
-#table_value = (0.828 * R_sun).to(R_sun)
-#Ebv = 0.020
-#distance = 100.4 * u.pc
-
-#photometry_flux = get_flux_values(star_name)
-#wavelen, SED_flux = SED_flux_bands(Teff, mettalicity, logg, Ebv)
-#create_dataframe(photometry_flux, SED_flux, distance)
-
-# %%
-
 def computed_real_comparison(computed_radius, table_radius):
+    '''Function to graph a comparison between the estimated and tabled stellar radii'''
+
     fig, axs = plt.subplots()
     axs.plot(table_radius, computed_radius, 'o')
     axs.axline((0.60,0.60), slope=1, color='black', linestyle='--')

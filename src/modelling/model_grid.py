@@ -1,12 +1,8 @@
-# %% 
-from src.config import MODEL_GRID_DIR
-
 import glob
 import os
 from astropy.io import fits
 import numpy as np
 import astropy.units as u
-# %%
 
 def load_model_grid(folder_path):
     u.flam = u.erg / u.s / u.cm**2 / u.angstrom
@@ -27,7 +23,7 @@ def load_model_grid(folder_path):
                 metallicity = float(hdr['LOG_Z'])
                 wavelength = (data['WAVELENGTH'] * u.angstrom).to(u.um)
                 
-                for i in np.arange(2, 13):
+                for i in range(2, 13):
                     log_g = str(data_hdr['TTYPE' + str(i)])
                     log_g = float(log_g[1:]) / 10
 
@@ -49,4 +45,3 @@ def load_model_grid(folder_path):
                          for Teff in sorted(model_grid)}      
       
     return sorted_model_grid
-# %%

@@ -1,14 +1,13 @@
-# %% Imports 
-
 import numpy as np
 import astropy.units as u
 from astroquery.simbad import Simbad
 from astroquery.vizier import Vizier
-from astropy.coordinates import SkyCoord
-from astropy.constants import R_sun
 import pandas as pd
-# %%
+
+
 def flux_unit_change(value,unit):
+    """Convert a flux quantity to the prompted unit"""
+    
     if unit == 'Jy':
         return value.to(u.Jy)
     
@@ -23,13 +22,15 @@ def flux_unit_change(value,unit):
     else:
         raise ValueError('Unit not recognized by programm')
     
-# %% 
 #url="https://exofop.ipac.caltech.edu/tess/download_toi.php?sort=toi&output=pipe"
 #TOI_df=pd.read_csv(url, delimiter='|', index_col=1)
-# %% 
+
 def retrieve_gaia_id(star_name):
+    """Retrieve the Gaia DR3 source ID for a star."""
+
     if type(star_name) == int:
         gaia_id = star_name
+
     elif type(star_name) == str:
         result_table = Simbad.query_objectids(star_name)
         if result_table == None and 'TOI' in star_name:
@@ -42,37 +43,44 @@ def retrieve_gaia_id(star_name):
                 gaia_id = str(x['ID']).replace('Gaia DR3 ', '')
     return gaia_id, star_name
 
-# %%
+
 def band_wavelen(filter_check):
+    """Return the central wavelengths of the selected photometric bands."""
+
     filter_bands = {'GBP':0.532, 'G': 0.673, 'GRP':0.797, 
                     'J':1.25, 'H':1.65, 'K':2.15,
-                    'W1':3.4, 'W2':4.6, 'W3':12, 'W4':22}
+                    'W1':3.4, 'W2':4.6}
 
     if filter_check is None:
         selected_bands = filter_bands
+
     elif isinstance(filter_check, list):
         selected_bands = {k: v for k, v in filter_bands.items() if k in filter_check}
 
     wavelen = np.array([d for d in selected_bands.values()]) * u.um
     return wavelen
-# %%
-def mag_to_flux(mag,band): # in W cm-2 micrometer-1
+
+
+def mag_to_flux(mag,band):
+    """Convert magnitude to flux using the photometric band zero point in W cm-2 micrometer-1."""
+
     flux_zero_points =  {'J':3.1293e-13,
                          'H':1.133e-13,
                          'K':4.283e-14,
                          'W1':8.180e-15,
                          'W2':2.415e-15,
-                         'W3':6.515e-17,
-                         'W4':5.090e-18
                          }
+    
     flux_constant = flux_zero_points.get(band)
 
     if flux_constant is None:
         raise ValueError(f'No zero point flux value found for {band} band')
     return flux_constant * 10**(-mag * 0.4)
 
-# %% 
+
 def vizier_coords(star_name):
+    """Retrieve sky coordinates for a star."""
+
     gaia_id, star_name = retrieve_gaia_id(star_name)
     gaia_catalog = "I/355/gaiadr3"  # Gaia DR3 catalog
     gaia_values = Vizier.query_constraints(catalog=gaia_catalog, Source=str(gaia_id))
@@ -82,7 +90,10 @@ def vizier_coords(star_name):
         return ra, dec
     else:
         raise ValueError("No Gaia id found.")
-# %%
+
+
 def find_nearest_index(array, value):
-        index = (np.abs(array - value)).argmin()
-        return index
+    """Return the index of the array element closest to a value."""
+
+    index = (np.abs(array - value)).argmin()
+    return index
