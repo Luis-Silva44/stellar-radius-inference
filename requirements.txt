@@ -8,13 +8,4 @@ uncertainties
 extinction
 emcee
 corner
-numbanumpy
-pandas
-scipy
-matplotlib
-astropy
-astroquery
-uncertainties
-extinction
-emcee
-corner
+
