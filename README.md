@@ -88,11 +88,11 @@ The pipeline was also tested against larger stellar samples, where common failur
 
 ### <u>SED Modelling</u> 
 
-The observed photometric data is compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effective temperature, metallicity and surface gravity, and results on a spectrum wide model for energy distribution.
+The observed photometric data is compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effective temperature, metallicity and surface gravity, and gives a spectrum wide curve for energy distribution.
 
 The resulting model is then processed: 
 1. Attenuated for interstellar extinction, according to published extinction laws and dust maps
-2. Integratted through the relevant photometric filter transmission functions, found in the *filters* folder of the repository
+2. Integrated through the relevant photometric filter transmission functions, found in the *filters* folder of the repository
 3. Scaled according to distance and stellar radius
 4. Compared to the observed data 
 
@@ -145,7 +145,7 @@ The script performs the complete analysis and prints the inferred radius, uncert
 
 The exact MCMC output can vary between runs because the sampler is initialized randomly.
 
-The results also produce two graphs: a convergence plot and a corner plot, which can be used to validate the accuracy of the results and of proper convergence of the MCMC process was achieved. 
+The results also produce two graphs: a convergence plot and a corner plot, which can be used to assess whether the MCMC process has properly converged.
 
 <div align="center">
 
@@ -219,7 +219,6 @@ The project uses Python and several scientific/data-analysis libraries:
 
 
 ## Repository Structure
-*change repository as needed*
 
 ```text
 .
