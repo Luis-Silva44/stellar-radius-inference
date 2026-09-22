@@ -25,3 +25,5 @@ Thumbs.db
 # Large model files
 trds/
 
+# Windows Zone.Identifier metadata
+*:Zone.Identifier
