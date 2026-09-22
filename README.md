@@ -2,38 +2,73 @@
 
 A Python-based data pipeline and Bayesian statistical modelling project for estimating stellar radii from heterogeneous astronomical observations for planet hosting stars.
 
-The project was originally developed as part of my MSc dissertation in Astronomy and Astrophysics. It has since been reorganized and revised into a standalone portfolio project, with particular emphasis on data retrieval, data cleaning, Bayesian statistical inference and uncertainty propagation.
+The project was originally developed as part of my MSc dissertation in Astronomy and Astrophysics at the University of Porto. It has since been reorganized and revised into a standalone portfolio project, with particular emphasis on data retrieval, data cleaning, Bayesian statistical inference and uncertainty propagation.
 
 ## Project Overview
 
-Estimating the physical properties of stars requires combining observations from multiple astronomical surveys. These datasets differ in format, identifiers, available measurements, units, and uncertainties.
+Estimating the physical properties of stars requires combining observations from multiple astronomical surveys in different conditions and wavelengths. These datasets differ in format, identifiers, available measurements, units, and uncertainties. This project brings those observations together and uses them to infer stellar properties through Bayesian modelling.
 
-This project builds a pipeline that:
+The pipeline developed follows the steps: 
 
-* Retrieves observational data from multiple astronomical catalogues. 
-* Cross-matches observations belonging to the same star.
-* Validates and combines measurements from different surveys.
-* Converts photometric measurements into comparable physical fluxes in chosen units.
-* Models the stellar spectral energy distribution - SED graphs.
-* Uses Bayesian inference and Markov Chain Monte Carlo (MCMC) to estimate stellar parameters and radius.
-* Quantifies uncertainty in the resulting estimates.
-* Compares inferred radii against reference measurements for validation.
+1. Retrieves stellar parameters from astronomical databases using SQL/ADQL
+2. Retrieves photometric measurements from GAIA, 2MASS and WISE surveys 
+3. Cross-matches observations belonging to the same star
+4. Validates and combines measurements from different surveys
+5. Converts photometric measurements into comparable physical fluxes in chosen units
+6. Models the stellar spectral energy distribution - SED graphs
+7. Uses Bayesian inference and Markov Chain Monte Carlo (MCMC) to estimate stellar radius
+8. Quantifies uncertainty in the resulting estimates
+9. Compares inferred radii against reference measurements for validation
 
-The main surveys used are Gaia, 2MASS, and WISE, providing photometric measurements across multiple wavelength bands.
+The main goal of the project is therefore not only the astrophysical result, but the construction of an end-to-end pipeline for working with heterogeneous scientific data.
 
 ## Data Pipeline
 
 A major component of the project is the integration of heterogeneous observational data.
 
-### <u>Data retrieval</u> 
+<div align="center">
 
-The pipeline retrieves data from:
+<img src="figures/pipeline_diagram.png" alt="pipeline" width="500">
 
-**Gaia DR3** — optical photometric information. The bands used are blue-pass $G_{BP}$ (centered at 532 $nm$), green $G$ (673 $nm$) and red-pass $G_{RP}$ (797 $nm$)  
-**2MASS** — near-infrared photometry, with bands J (1.25 $\mu m$), H (1.65 $\mu m$) and K (2.15 $\mu m$)  
-**WISE** — mid-infrared photometry, with bands W1 (3.4 $\mu m$) and W2 (4.6 $\mu m$)
+<p><em>Diagram representation of the end-to-end pipeline for this project. </em></p>
 
-The different catalogues use different identifiers and data formats, so the pipeline performs catalogue cross-matching to associate observations with the correct stellar source.
+</div>
+
+### <u>Data retrieval and sources</u> 
+
+#### SWEET-cat 
+
+SWEET-Cat provides the stellar parameters used as external constraints in the inference, including:
+
+* Effective temperature
+* Surface gravity
+* Metallicity
+* Reference stellar radius
+* Gaia identifier
+* Parallax and distance information
+
+The project queries the catalogue programmatically through the VizieR TAP service using ADQL. The different catalogues use different identifiers and data formats, so the pipeline performs catalogue cross-matching to associate observations with the correct stellar source.
+
+#### Photometric surveys 
+
+| Survey | Band | Approx. wavelength |
+|---|---|---:|
+| Gaia | GBP | 0.532 μm |
+| Gaia | G | 0.673 μm |
+| Gaia | GRP | 0.797 μm |
+| 2MASS | J | 1.25 μm |
+| 2MASS | H | 1.65 μm |
+| 2MASS | Ks | 2.15 μm |
+| WISE | W1 | 3.4 μm |
+| WISE | W2 | 4.6 μm |
+
+<div>
+
+<img src="figures/transmission.png" alt="transmission" width="500">
+
+<p><em>Transmission functions for the bands considered. </em></p>
+
+</div>
 
 
 ### <u>Data processing</u> 
@@ -51,11 +86,17 @@ Retrieved measurements are processed before being used by the statistical model.
 The pipeline was also tested against larger stellar samples, where common failure cases included missing catalogue matches, incomplete photometry, and inconsistent source identifiers.
 
 
-### <u>Statistical Modelling</u> 
+### <u>SED Modelling</u> 
 
-The processed photometric data are compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effective temperature, metallicity and surface gravity, and results in a spectral energy distribution curve on the whole spectrum - a SED graph. 
+The observed photometric data is compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effective temperature, metallicity and surface gravity, and results on a spectrum wide model for energy distribution.
 
-The synthetic SED is then attenuated according to the estimated interstellar extinction and integrated through the relevant photometric filter transmission curves.
+The resulting model is then processed: 
+1. Attenuated for interstellar extinction, according to published extinction laws and dust maps
+2. Integratted through the relevant photometric filter transmission functions, found in the *filters* folder of the repository
+3. Scaled according to distance and stellar radius
+4. Compared to the observed data 
+
+This model therefore connects the observed multi-band photometry to the physical stellar radius.
 
 
 ### <u>Bayesian inference</u> 
@@ -80,33 +121,80 @@ Measurement uncertainty in the observed photometry
 
 The radius is estimated from the posterior distributions' 50th percentile, while the 16th and 84th percentiles are used to characterize the uncertainty.
 
+## Example: WASP-84 
 
-### <u>Validation</u> 
+The repository includes a working example as a quick validation and demonstration of the workflow of the pipeline. 
 
-The pipeline was initially validated against reference stellar radii, using a benchmark sample of Sun-like stars with well known parameters.
+The input parameters and their respective uncertainties are obtained from querying SWEET-cat directly. The extinction value used was 0.020, obtained from literature. 
 
-*WASP-84 was used as the main test case for reproducing the original dissertation analysis.*
+For the MCMC set-up, the example uses **32 walkers** and **1000** steps. These conditions can be easily changed for better performance/speed ratio, taking into account the walkers must always be above a certain number (2 times the number of parameters). 
 
-*Using the same approximate observational inputs and MCMC configuration as the dissertation, the reorganized code produces a radius consistent with the original result.*
+To run, from the repository root:
 
-*The original dissertation reported a radius of approximately:*
+> python -m tests.wasp84 
 
-*0.83 R☉*
+The script performs the complete analysis and prints the inferred radius, uncertainty and difference from the reference value. A representative test was run for this document, producing the following results: 
 
-*The refactored implementation produces results in the same range, demonstrating that the restructuring of the code preserved the original analysis.*
+| Result | Value |
+|---|---:|
+| Inferred radius | 0.837 R☉ |
+| Uncertainty | ±0.024 R☉ |
+| Reference radius | 0.828 R☉ |
+| Difference | ~1.1% |
 
-*Benchmark sample*
 
-*The original analysis was also applied to a benchmark sample of 37 stars.*
+The exact MCMC output can vary between runs because the sampler is initialized randomly.
 
-*The dissertation reported:*
+The results also produce two graphs: a convergence plot and a corner plot, which can be used to validate the accuracy of the results and of proper convergence of the MCMC process was achieved. 
 
-*Mean percentage error: 1.28%*
-*94.6% of estimates within 1σ of the reference values*
-*Mean radius offset: +0.0133 R☉*
+<div align="center">
 
-*The corresponding processed results are included in results/.*
+<img src="figures/convergence.png" alt="convergence plot" width="400">
 
+<p><em>Convergence plot for WASP-84.</em></p>
+
+<img src="figures/corner.png" alt="corner plot" width="350">
+
+<p><em>Corner plot for WASP-84.</em></p>
+
+</div>
+
+## Validation 
+
+The pipeline was validated against a small set of 37 benchmark Sun-like stars with well known parameters and a larger sample of 748 stars with varying values to study the limits of the tool developed. 
+
+### <u>Benchmark Sample</u> 
+
+The corresponding processed results are included in:
+
+> results/benchmark_results.csv
+
+The file contains the reference radius and results from the different inference configurations used in the original analysis. This sample also includes results obtained from some alternative models, discussed below.
+
+For the primary temperature-based inference, the results obtained were:
+
+| Metric | Result |
+|---|---:|
+| Mean percentage error | 1.28% |
+| Estimates within 1σ | 94.6% |
+| Mean radius offset | +0.0133 R☉ |
+
+### <u>Large sample analysis</u>
+
+The analysis was also applied to a substantially larger SWEET-Cat sample.
+
+Of the 748 stars flagged as suitable for analysis, 675 stars were successfully processed while 73 stars failed during processing.
+
+Common failure cases included:
+
+* Invalid or missing Gaia identifiers
+* Missing or unusable photometric measurements
+* Failed 2MASS or WISE cross-matches
+* Occasional MCMC failures caused by invalid posterior probabilities
+
+The results can be found in: 
+
+> results/large_sample_results.csv
 
 ### <u>Alternative Models</u> 
 
@@ -136,46 +224,41 @@ The project uses Python and several scientific/data-analysis libraries:
 ```text
 .
 ├── README.md
-├── data
-│   └── list_stars.txt
-├── filters
-│   ├── 2MASS_2MASS.H.dat
-│   ├── 2MASS_2MASS.J.dat
-│   ├── 2MASS_2MASS.Ks.dat
-│   ├── GAIA_GAIA3.G.dat
-│   ├── GAIA_GAIA3.Gbp.dat
-│   ├── GAIA_GAIA3.Grp.dat
-│   ├── WISE_WISE.W1.dat
-│   ├── WISE_WISE.W2.dat
-│   ├── WISE_WISE.W3.dat
-│   └── WISE_WISE.W4.dat
-├── notebooks
 ├── requirements.txt
-├── results
-│   └── star_results.csv
-├── src
-│   ├── analysis
-│   │   ├── __init__.py
+|
+├── data
+|
+├── figures
+|
+├── filters
+|   └── All filter transmission functions
+│   
+├── src/
+│   ├── analysis/
 │   │   └── graphs_visualization.py
-│   ├── config.py
-│   ├── data_retrieval
-│   │   ├── __init__.py
+│   │
+│   ├── data_retrieval/
 │   │   ├── auxiliary_functions.py
+│   │   ├── query_sweetcat.py
 │   │   ├── gaia_module.py
 │   │   ├── two_mass_module.py
 │   │   └── wise_module.py
-│   ├── mcmc_inference
+│   │
+│   ├── mcmc_inference/
 │   │   ├── MCMC_complete.py
 │   │   ├── MCMC_extinction.py
-│   │   ├── MCMC_temperature.py
-│   │   └── __init__.py
-│   └── modelling
+│   │   └── MCMC_temperature.py
+│   │
+│   └── modelling/
 │       ├── SED_fitting.py
 │       ├── SED_flux.py
-│       ├── __init__.py
 │       ├── model_grid.py
 │       └── transmission_test.py
-└── tests
+|
+├── tests/
+│    └── wasp84.py
+|
+└── results
 ``` 
 
 ### <u>Installation</u> 
