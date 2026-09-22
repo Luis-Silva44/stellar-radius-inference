@@ -39,8 +39,8 @@ def retrieve_gaia_id(star_name):
             result_table = Simbad.query_objectids(star_name)
 
         for x in result_table:
-            if 'Gaia DR3' in x['ID']:
-                gaia_id = str(x['ID']).replace('Gaia DR3 ', '')
+            if 'Gaia DR3' in x['id']:
+                gaia_id = str(x['id']).replace('Gaia DR3 ', '')
     return gaia_id, star_name
 
 

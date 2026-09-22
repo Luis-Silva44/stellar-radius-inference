@@ -12,12 +12,12 @@ def two_mass_values(star_name):
     gaia_id, star_name = retrieve_gaia_id(star_name)
     gaia_catalog = "I/355/gaiadr3"
     gaia_data = Vizier.query_constraints(catalog=gaia_catalog, Source=str(gaia_id))
-    two_mass_iden = str(gaia_data[0]['_2MASS'][0])
+    two_mass_iden = str(gaia_data[0]['2MASS'][0])
     res = Vizier.query_object(star_name, catalog='II/246/out')
 
     flag = 0
     for i in res[0]:
-        if i['_2MASS'] == two_mass_iden: 
+        if i['2MASS'] == two_mass_iden: 
             break 
         flag += 1
 
