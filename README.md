@@ -31,7 +31,7 @@ The pipeline retrieves data from:
 
 **Gaia DR3** — optical photometric information. The bands used are blue-pass $G_{BP}$ (centered at 532 $nm$), green $G$ (673 $nm$) and red-pass $G_{RP}$ (797 $nm$)  
 **2MASS** — near-infrared photometry, with bands J (1.25 $\mu m$), H (1.65 $\mu m$) and K (2.15 $\mu m$)  
-**WISE** — mid-infrared photometry, with bands W1 (1.25 $\mu m$) and W2 (1.25 $\mu m$)
+**WISE** — mid-infrared photometry, with bands W1 (3.4 $\mu m$) and W2 (4.6 $\mu m$)
 
 The different catalogues use different identifiers and data formats, so the pipeline performs catalogue cross-matching to associate observations with the correct stellar source.
 
@@ -53,7 +53,7 @@ The pipeline was also tested against larger stellar samples, where common failur
 
 ### <u>Statistical Modelling</u> 
 
-The processed photometric data are compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effectiive temperature, metallicity and surface gravity, and results in a spectral energy distribution curve on the whole spectrum - a SED graph. 
+The processed photometric data are compared against synthetic stellar spectral energy distributions generated from a 3 dimensional grid of stellar atmosphere models, using Kurucz and Castelli stellar atmosphere atlas. The model is interpolated across effective temperature, metallicity and surface gravity, and results in a spectral energy distribution curve on the whole spectrum - a SED graph. 
 
 The synthetic SED is then attenuated according to the estimated interstellar extinction and integrated through the relevant photometric filter transmission curves.
 
